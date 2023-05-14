@@ -34,6 +34,9 @@
 (defvar ppro-path (concat (getenv "programfiles(x86)") "\\PowerPro\\Powerpro.exe")
   "The path to PowerPro.")
 
+(defvar pproconf-path (concat (getenv "programfiles(x86)") "\\PowerPro\\pproconf.exe")
+  "The path to pproconf.")
+
 (defvar ppro-script-path (concat (getenv "APPDATA") "\\PowerPro\\scripts")
   "The path to ppro scripts.")
 
@@ -62,6 +65,15 @@
   (when parameters
     (w32-shell-execute "open" ppro-path parameters 1)
     (message "Execute PowerPro command: %s" parameters)))
+
+;;;###autoload
+(defun ppro-configure ()
+  "Configure PowerPro."
+  (interactive)
+  (let* ((ppro-data-path (concat (getenv "APPDATA") "\\PowerPro"))
+	 (conf-list (directory-files ppro-data-path nil ".pcf$"))
+	 (conf-file (format "%s\\%s" ppro-data-path (completing-read "Select a PowerPro configuratuon file: " conf-list))))
+    (w32-shell-execute "open" pproconf-path conf-file 1)))
 
 ;;;###autoload
 (defun ppro-import-org-agenda ()
