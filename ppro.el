@@ -34,10 +34,31 @@
 (defvar ppro-path (concat (getenv "programfiles(x86)") "\\PowerPro\\Powerpro.exe")
   "The path to PowerPro.")
 
+(defvar ppro-script-path (concat (getenv "APPDATA") "\\PowerPro\\scripts")
+  "The path to ppro scripts.")
+
+;;;###autoload
+(defun ppro-generate-command-list ()
+  "Generate a PowerPro command list from the PowerPro script path."
+  (let ((regexp "^function \\(.*\\)$")
+	(file-list (directory-files ppro-script-path nil ".powerpro$"))
+	(command-list nil))
+    (with-temp-buffer
+      (dolist (file file-list)
+	(let ((file-path (format "%s\\%s" ppro-script-path file)))
+	  (when (file-exists-p file-path)
+	    (insert-file-contents file-path nil nil nil 'replace)
+	    (goto-char (point-min))
+	    (while (re-search-forward regexp nil t)
+	      (let ((function (match-string 1)))
+		(when (not (string-match-p "_autoinit_" function))
+		  (push (format ".%s@%s" (file-name-sans-extension file) (match-string 1)) command-list))))))))
+    command-list))
+
 ;;;###autoload
 (defun ppro-execute-command(parameters)
   "Execute PowerPro command."
-  (interactive (list (read-shell-command "PowerPro command: ")))
+  (interactive (list (completing-read "PowerPro command: " (ppro-generate-command-list))))
   (when parameters
     (w32-shell-execute "open" ppro-path parameters 1)
     (message "Execute PowerPro command: %s" parameters)))
