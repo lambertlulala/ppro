@@ -85,4 +85,16 @@
     (ppro-export-org-agenda-to-ini org-default-notes-file tmpini)
     (ppro-execute-command parameters)))
 
+;;;###autoload
+(defun ppro-show-text-on-note (text)
+  "Show text on PowerPro note."
+  (interactive (list (read-shell-command "Show text on PowerPro note: ")))
+  (let* ((scriptname (make-temp-file "emacs"))
+	 (tmpscript (concat scriptname ".powerpro")))
+    (with-temp-file tmpscript
+      (insert (format "function showNote(text, script)\n
+local nh = note.open(\"\", \"\", 2)\nnh.inserttext(text)\n
+nh.ontop(1)\nendfunction\nfile.delete(script)")))
+    (ppro-execute-command (format "call(\"%s@showNote\", \"%s\", \"%s\")" scriptname text tmpscript))))
+
 (provide 'ppro)
